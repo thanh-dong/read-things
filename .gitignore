@@ -5,9 +5,9 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native builds
-ios/
-android/
+# Native builds (root-level only, not modules/)
+/ios/
+/android/
 
 # Dev
 *.tsbuildinfo
