@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, ScrollView } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { router } from 'expo-router';
 import { savePhoto } from '@/services/image-storage';
 import { useDetection } from '@/hooks/use-detection';
 import { useDetectionStore } from '@/stores/detection-store';
 import { DetectionOverlay } from '@/components/DetectionOverlay';
+import { LanguageChip } from '@/components/LanguageChip';
+import { useSettingsStore } from '@/stores/settings-store';
+import { SUPPORTED_LANGUAGES } from '@/constants/languages';
 
 export default function CameraScreen() {
   const device = useCameraDevice('back');
@@ -14,6 +17,8 @@ export default function CameraScreen() {
   const [isCapturing, setIsCapturing] = useState(false);
   const { frameProcessor } = useDetection();
   const labels = useDetectionStore((s) => s.labels);
+  const targetLanguages = useSettingsStore((s) => s.targetLanguages);
+  const toggleLanguage = useSettingsStore((s) => s.toggleLanguage);
 
   if (!hasPermission) {
     return (
@@ -61,6 +66,21 @@ export default function CameraScreen() {
         frameProcessor={frameProcessor}
       />
       <DetectionOverlay />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.languageBar}
+        contentContainerStyle={styles.languageBarContent}
+      >
+        {SUPPORTED_LANGUAGES.map((lang) => (
+          <LanguageChip
+            key={lang.code}
+            code={lang.code}
+            isSelected={targetLanguages.includes(lang.code)}
+            onPress={() => toggleLanguage(lang.code)}
+          />
+        ))}
+      </ScrollView>
       <View style={styles.captureContainer}>
         <TouchableOpacity
           style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
@@ -94,6 +114,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  languageBar: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    maxHeight: 44,
+  },
+  languageBarContent: {
+    paddingHorizontal: 12,
+    alignItems: 'center',
   },
   captureContainer: {
     position: 'absolute',
