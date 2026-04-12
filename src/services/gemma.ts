@@ -79,8 +79,9 @@ export async function initModel(): Promise<void> {
   const store = useModelStore.getState();
 
   if (!isModelDownloaded()) {
-    store.setError('Model not downloaded');
-    return;
+    const msg = 'Model not downloaded';
+    store.setError(msg);
+    throw new Error(msg);
   }
 
   store.setStatus('loading');

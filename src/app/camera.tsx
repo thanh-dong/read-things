@@ -39,9 +39,12 @@ export default function CameraScreen() {
     );
   }
 
+  const [captureError, setCaptureError] = useState<string | null>(null);
+
   const handleCapture = async () => {
     if (isCapturing || !cameraRef.current) return;
     setIsCapturing(true);
+    setCaptureError(null);
     try {
       const photo = await cameraRef.current.takePhoto();
       const savedPath = await savePhoto(photo.path);
@@ -50,6 +53,8 @@ export default function CameraScreen() {
         pathname: '/capture-result',
         params: { imagePath: savedPath, detectedLabels },
       });
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : 'Failed to capture photo');
     } finally {
       setIsCapturing(false);
     }

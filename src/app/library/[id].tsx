@@ -53,8 +53,8 @@ export default function LibraryDetailScreen() {
   const handleDelete = async () => {
     setDeleteError(null);
     try {
-      deletePhoto(item.imagePath);
       await deleteLibraryItem(itemId);
+      try { deletePhoto(item.imagePath); } catch { /* photo cleanup is best-effort */ }
       router.back();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Failed to delete item');
