@@ -26,5 +26,13 @@ npm-debug.*
 .DS_Store
 Thumbs.db
 
+# Drizzle generated
+drizzle/meta/
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+
 # EAS
 .easignore
