@@ -1,15 +1,17 @@
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useLibraryItems } from '@/hooks/use-library';
 import { LibraryItemCard } from '@/components/LibraryItemCard';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function LibraryScreen() {
   const { data: items } = useLibraryItems();
+  const colors = useTheme();
 
   if (!items || items.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyTitle}>No items yet</Text>
-        <Text style={styles.emptySubtitle}>
+      <View style={[styles.empty, { backgroundColor: colors.background }]}>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>No items yet</Text>
+        <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
           Capture objects with the camera and save them to build your library
         </Text>
       </View>
@@ -17,8 +19,8 @@ export default function LibraryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Library</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.header, { color: colors.text }]}>Library</Text>
       <FlatList
         data={items}
         keyExtractor={(item) => String(item.id)}
@@ -35,10 +37,8 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
   },
   header: {
-    color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
     padding: 16,
@@ -51,16 +51,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
     padding: 32,
   },
   emptyTitle: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
   emptySubtitle: {
-    color: '#999',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
