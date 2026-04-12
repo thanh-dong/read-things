@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["MlkitLabelModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.mlkitlabel.MlkitLabelModule"]
+  }
+}
