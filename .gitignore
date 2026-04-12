@@ -1,0 +1,30 @@
+# Expo
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native builds
+ios/
+android/
+
+# Dev
+*.tsbuildinfo
+*.log
+npm-debug.*
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Models (too large for git)
+*.gguf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# EAS
+.easignore
