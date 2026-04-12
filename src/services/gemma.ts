@@ -1,31 +1,28 @@
 import { initLlama, type LlamaContext } from 'llama.rn';
-import * as FileSystem from 'expo-file-system';
+import { Paths, Directory, File } from 'expo-file-system';
 import { useModelStore } from '@/stores/model-store';
 
-const MODEL_DIR = FileSystem.documentDirectory + 'models/';
+const MODEL_DIR = new Directory(Paths.document, 'models');
 const MODEL_FILENAME = 'gemma-4-e2b-it-q4_k_m.gguf';
-const MODEL_PATH = MODEL_DIR + MODEL_FILENAME;
+const MODEL_FILE = new File(MODEL_DIR, MODEL_FILENAME);
 const MODEL_URL =
   'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf';
 
 let llamaContext: LlamaContext | null = null;
 
-async function ensureModelDir(): Promise<void> {
-  const info = await FileSystem.getInfoAsync(MODEL_DIR);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(MODEL_DIR, { intermediates: true });
+function ensureModelDir(): void {
+  if (!MODEL_DIR.exists) {
+    MODEL_DIR.create({ intermediates: true });
   }
 }
 
-export async function isModelDownloaded(): Promise<boolean> {
-  const info = await FileSystem.getInfoAsync(MODEL_PATH);
-  return info.exists;
+export function isModelDownloaded(): boolean {
+  return MODEL_FILE.exists;
 }
 
-export async function getModelSize(): Promise<number> {
-  const info = await FileSystem.getInfoAsync(MODEL_PATH);
-  if (info.exists) {
-    return info.size;
+export function getModelSize(): number {
+  if (MODEL_FILE.exists) {
+    return MODEL_FILE.size;
   }
   return 0;
 }
@@ -33,57 +30,43 @@ export async function getModelSize(): Promise<number> {
 export async function downloadModel(): Promise<void> {
   const store = useModelStore.getState();
 
-  if (await isModelDownloaded()) {
+  if (isModelDownloaded()) {
     store.setStatus('downloaded');
     return;
   }
 
-  await ensureModelDir();
+  ensureModelDir();
   store.setStatus('downloading');
   store.setDownloadProgress(0);
 
-  const callback = (downloadProgress: FileSystem.DownloadProgressData) => {
-    const progress =
-      downloadProgress.totalBytesWritten /
-      downloadProgress.totalBytesExpectedToWrite;
-    store.setDownloadProgress(Math.round(progress * 100));
-  };
-
-  const downloadResumable = FileSystem.createDownloadResumable(
-    MODEL_URL,
-    MODEL_PATH,
-    {},
-    callback,
-  );
-
   try {
-    const result = await downloadResumable.downloadAsync();
-    if (result?.uri) {
+    const downloaded = await File.downloadFileAsync(MODEL_URL, MODEL_FILE, {
+      idempotent: true,
+    });
+    if (downloaded.exists) {
       store.setStatus('downloaded');
       store.setDownloadProgress(100);
     } else {
-      throw new Error('Download failed — no URI returned');
+      throw new Error('Download failed — file not found after download');
     }
   } catch (error) {
     store.setError(
       error instanceof Error ? error.message : 'Download failed',
     );
-    const info = await FileSystem.getInfoAsync(MODEL_PATH);
-    if (info.exists) {
-      await FileSystem.deleteAsync(MODEL_PATH);
+    if (MODEL_FILE.exists) {
+      MODEL_FILE.delete();
     }
     throw error;
   }
 }
 
-export async function deleteModel(): Promise<void> {
+export function deleteModel(): void {
   if (llamaContext) {
-    await llamaContext.release();
+    llamaContext.release();
     llamaContext = null;
   }
-  const info = await FileSystem.getInfoAsync(MODEL_PATH);
-  if (info.exists) {
-    await FileSystem.deleteAsync(MODEL_PATH);
+  if (MODEL_FILE.exists) {
+    MODEL_FILE.delete();
   }
   const store = useModelStore.getState();
   store.setStatus('not-downloaded');
@@ -95,7 +78,7 @@ export async function initModel(): Promise<void> {
 
   const store = useModelStore.getState();
 
-  if (!(await isModelDownloaded())) {
+  if (!isModelDownloaded()) {
     store.setError('Model not downloaded');
     return;
   }
@@ -104,7 +87,7 @@ export async function initModel(): Promise<void> {
 
   try {
     llamaContext = await initLlama({
-      model: MODEL_PATH,
+      model: MODEL_FILE.uri,
       n_ctx: 2048,
       n_gpu_layers: 99,
       use_mlock: true,

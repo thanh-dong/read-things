@@ -1,25 +1,25 @@
-import * as FileSystem from 'expo-file-system';
+import { Paths, Directory, File } from 'expo-file-system';
 
-const PHOTO_DIR = FileSystem.documentDirectory + 'photos/';
+const PHOTO_DIR = new Directory(Paths.document, 'photos');
 
-async function ensurePhotoDir() {
-  const info = await FileSystem.getInfoAsync(PHOTO_DIR);
-  if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(PHOTO_DIR, { intermediates: true });
+function ensurePhotoDir() {
+  if (!PHOTO_DIR.exists) {
+    PHOTO_DIR.create({ intermediates: true });
   }
 }
 
 export async function savePhoto(tempPath: string): Promise<string> {
-  await ensurePhotoDir();
+  ensurePhotoDir();
   const filename = `photo_${Date.now()}.jpg`;
-  const destPath = PHOTO_DIR + filename;
-  await FileSystem.copyAsync({ from: tempPath, to: destPath });
-  return destPath;
+  const destFile = new File(PHOTO_DIR, filename);
+  const sourceFile = new File(tempPath);
+  sourceFile.copy(destFile);
+  return destFile.uri;
 }
 
-export async function deletePhoto(path: string): Promise<void> {
-  const info = await FileSystem.getInfoAsync(path);
-  if (info.exists) {
-    await FileSystem.deleteAsync(path);
+export function deletePhoto(path: string): void {
+  const file = new File(path);
+  if (file.exists) {
+    file.delete();
   }
 }
