@@ -5,9 +5,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 class MlkitLabelModule : Module() {
   companion object {
-    // Reference the plugin package to ensure its companion init block runs,
-    // which registers the "labelImage" frame processor plugin with VisionCamera.
-    private val pluginPackage = MLKitLabelPluginPackage::class
+    init {
+      // Force class loading to trigger MLKitLabelPluginPackage companion init,
+      // which registers the "labelImage" frame processor plugin with VisionCamera.
+      MLKitLabelPluginPackage()
+    }
   }
 
   override fun definition() = ModuleDefinition {

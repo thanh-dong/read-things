@@ -1,18 +1,11 @@
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useSettingsStore } from '@/stores/settings-store';
 
 export default function RootLayout() {
-  const hasCompletedOnboarding = useSettingsStore(
-    (s) => s.hasCompletedOnboarding,
-  );
   const isDarkMode = useSettingsStore((s) => s.isDarkMode);
-
-  if (!hasCompletedOnboarding) {
-    return <Redirect href="/onboarding" />;
-  }
 
   return (
     <ThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>

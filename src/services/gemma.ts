@@ -1,10 +1,15 @@
 import { initLlama, type LlamaContext } from 'llama.rn';
 import { Paths, Directory, File } from 'expo-file-system';
+import {
+  documentDirectory,
+  createDownloadResumable,
+} from 'expo-file-system/legacy';
 import { useModelStore } from '@/stores/model-store';
 
 const MODEL_DIR = new Directory(Paths.document, 'models');
 const MODEL_FILENAME = 'gemma-4-e2b-it-q4_k_m.gguf';
 const MODEL_FILE = new File(MODEL_DIR, MODEL_FILENAME);
+const MODEL_LEGACY_PATH = `${documentDirectory}models/${MODEL_FILENAME}`;
 const MODEL_URL =
   'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf';
 
@@ -40,16 +45,36 @@ export async function downloadModel(): Promise<void> {
   store.setDownloadProgress(0);
 
   try {
-    const downloaded = await File.downloadFileAsync(MODEL_URL, MODEL_FILE, {
-      idempotent: true,
-    });
-    if (downloaded.exists) {
+    console.log('[Gemma] Starting download from:', MODEL_URL);
+    console.log('[Gemma] Saving to:', MODEL_LEGACY_PATH);
+
+    const downloadResumable = createDownloadResumable(
+      MODEL_URL,
+      MODEL_LEGACY_PATH,
+      {},
+      (downloadProgress) => {
+        const progress = Math.round(
+          (downloadProgress.totalBytesWritten /
+            downloadProgress.totalBytesExpectedToWrite) *
+            100,
+        );
+        if (progress % 10 === 0) {
+          console.log(`[Gemma] Download progress: ${progress}%`);
+        }
+        store.setDownloadProgress(progress);
+      },
+    );
+
+    const result = await downloadResumable.downloadAsync();
+    console.log('[Gemma] Download result:', JSON.stringify(result));
+    if (result?.uri) {
       store.setStatus('downloaded');
       store.setDownloadProgress(100);
     } else {
       throw new Error('Download failed — file not found after download');
     }
   } catch (error) {
+    console.error('[Gemma] Download error:', error);
     store.setError(
       error instanceof Error ? error.message : 'Download failed',
     );

@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description    = 'An Expo local module providing ML Kit Image Labeling as a VisionCamera frame processor plugin'
   s.author         = ''
   s.homepage       = 'https://github.com/user/read-things'
-  s.platforms      = { :ios => '15.1' }
+  s.platforms      = { :ios => '16.0' }
   s.source         = { git: '' }
   s.static_framework = true
 

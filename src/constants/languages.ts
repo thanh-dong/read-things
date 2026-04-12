@@ -8,6 +8,7 @@ export interface Language {
 }
 
 export const SUPPORTED_LANGUAGES: Language[] = [
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸', bcp47: 'en-US', script: 'latin' },
   { code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵', bcp47: 'ja-JP', script: 'cjk' },
   { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt', flag: '🇻🇳', bcp47: 'vi-VN', script: 'latin' },
   { code: 'ko', name: 'Korean', nativeName: '한국어', flag: '🇰🇷', bcp47: 'ko-KR', script: 'hangul' },

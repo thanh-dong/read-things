@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.readthings.app',
+    deploymentTarget: '16.0',
     infoPlist: {
       NSCameraUsageDescription:
         'readThings uses the camera to detect objects and help you learn their names in other languages.',

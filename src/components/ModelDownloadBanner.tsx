@@ -18,8 +18,8 @@ export function ModelDownloadBanner() {
     try {
       await downloadModel();
       await initModel();
-    } catch {
-      // error is already set in store
+    } catch (e) {
+      console.error('[ModelDownload]', e);
     }
   };
 
@@ -63,7 +63,7 @@ export function ModelDownloadBanner() {
       )}
       {status === 'error' && (
         <>
-          <Text style={styles.errorText}>{error ?? 'An error occurred'}</Text>
+          <Text style={styles.errorText} selectable>{error ?? 'An error occurred'}</Text>
           <TouchableOpacity style={styles.button} onPress={handleRetry}>
             <Text style={styles.buttonText}>Retry</Text>
           </TouchableOpacity>

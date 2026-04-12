@@ -15,6 +15,7 @@ export default function CameraScreen() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const cameraRef = useRef<Camera>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [captureError, setCaptureError] = useState<string | null>(null);
   const { frameProcessor } = useDetection();
   const labels = useDetectionStore((s) => s.labels);
   const targetLanguages = useSettingsStore((s) => s.targetLanguages);
@@ -38,8 +39,6 @@ export default function CameraScreen() {
       </View>
     );
   }
-
-  const [captureError, setCaptureError] = useState<string | null>(null);
 
   const handleCapture = async () => {
     if (isCapturing || !cameraRef.current) return;
