@@ -146,6 +146,57 @@ export interface TranslationResult {
   phonetic: string | null;
 }
 
+export interface IdentifyAndTranslateResult {
+  identified: string;
+  translations: TranslationResult[];
+}
+
+export async function identifyAndTranslateLabel(
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<IdentifyAndTranslateResult> {
+  if (!llamaContext) {
+    throw new Error('Model not initialized. Call initModel() first.');
+  }
+
+  const result = await llamaContext.completion({
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    n_predict: 512,
+    temperature: 0,
+    stop: ['```', '\n\n\n'],
+  });
+
+  try {
+    const parsed: {
+      identified?: string;
+      translations?: Array<{
+        lang: string;
+        word: string;
+        phonetic?: string;
+      }>;
+    } = JSON.parse(result.text);
+
+    if (!parsed.identified) {
+      throw new Error('Missing "identified" field in response');
+    }
+
+    return {
+      identified: parsed.identified,
+      translations: (parsed.translations ?? []).map((t) => ({
+        lang: t.lang,
+        word: t.word,
+        phonetic: t.phonetic ?? null,
+      })),
+    };
+  } catch {
+    console.warn('Failed to parse Gemma identify+translate response:', result.text);
+    throw new Error('Failed to parse identification result');
+  }
+}
+
 export async function translateLabel(
   englishLabel: string,
   targetLanguages: string[],

@@ -6,7 +6,7 @@ import MLKitImageLabeling
 public class MLKitLabelPlugin: FrameProcessorPlugin {
   private static let labeler: ImageLabeler = {
     let options = ImageLabelerOptions()
-    options.confidenceThreshold = NSNumber(value: 0.4)
+    options.confidenceThreshold = NSNumber(value: 0.5)
     return ImageLabeler.imageLabeler(options: options)
   }()
 

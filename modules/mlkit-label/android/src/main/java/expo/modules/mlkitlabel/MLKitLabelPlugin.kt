@@ -9,7 +9,7 @@ import com.mrousavy.camera.frameprocessors.FrameProcessorPlugin
 
 class MLKitLabelPlugin : FrameProcessorPlugin() {
   private val labeler = ImageLabeling.getClient(
-    ImageLabelerOptions.Builder().setConfidenceThreshold(0.4f).build()
+    ImageLabelerOptions.Builder().setConfidenceThreshold(0.5f).build()
   )
 
   override fun callback(frame: Frame, params: Map<String, Any>?): Any? {

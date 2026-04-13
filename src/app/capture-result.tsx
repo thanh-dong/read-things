@@ -27,7 +27,7 @@ export default function CaptureResultScreen() {
 
   const targetLanguages = useSettingsStore((s) => s.targetLanguages);
   const modelStatus = useModelStore((s) => s.status);
-  const { translations, isTranslating, error: translationError, translate } = useTranslation();
+  const { translations, identifiedObject, isTranslating, error: translationError, translate, identifyAndTranslate } = useTranslation();
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -43,13 +43,21 @@ export default function CaptureResultScreen() {
   }, [detectedLabels]);
 
   const topLabel = labels.length > 0 ? labels[0].label : null;
+  const displayLabel = identifiedObject ?? topLabel;
 
-  // Trigger translation for the top label when labels arrive
+  // Trigger identification + translation when labels arrive
   useEffect(() => {
-    if (topLabel && targetLanguages.length > 0) {
+    if (labels.length === 0 || targetLanguages.length === 0) return;
+
+    if (modelStatus === 'ready') {
+      // Gemma available: identify specific object from all ML Kit labels, then translate
+      const mlKitLabels = labels.map((l) => l.label);
+      identifyAndTranslate(mlKitLabels, targetLanguages);
+    } else if (topLabel) {
+      // Fallback: translate top ML Kit label directly
       translate(topLabel, targetLanguages);
     }
-  }, [topLabel, targetLanguages, translate]);
+  }, [topLabel, targetLanguages, modelStatus, labels, translate, identifyAndTranslate]);
 
   const handleSave = async () => {
     if (!imagePath || labels.length === 0) return;
@@ -66,7 +74,12 @@ export default function CaptureResultScreen() {
   };
 
   const handleRetryTranslation = () => {
-    if (topLabel && targetLanguages.length > 0) {
+    if (labels.length === 0 || targetLanguages.length === 0) return;
+
+    if (modelStatus === 'ready') {
+      const mlKitLabels = labels.map((l) => l.label);
+      identifyAndTranslate(mlKitLabels, targetLanguages);
+    } else if (topLabel) {
       translate(topLabel, targetLanguages);
     }
   };
@@ -85,10 +98,18 @@ export default function CaptureResultScreen() {
       <View style={styles.content}>
         <Text style={styles.title}>Captured!</Text>
 
+        {/* Gemma-identified object */}
+        {identifiedObject && (
+          <View style={styles.identifiedSection}>
+            <Text style={styles.identifiedLabel}>{identifiedObject}</Text>
+            <Text style={styles.identifiedHint}>Identified by AI</Text>
+          </View>
+        )}
+
         {/* Detection labels */}
         {labels.length > 0 ? (
           <View style={styles.section}>
-            <Text style={styles.subtitle}>Detected objects</Text>
+            <Text style={styles.subtitle}>{identifiedObject ? 'ML Kit labels' : 'Detected objects'}</Text>
             {labels.map((item, index) => (
               <View key={`${item.label}-${index}`} style={styles.labelRow}>
                 <Text style={styles.labelText}>{item.label}</Text>
@@ -125,7 +146,7 @@ export default function CaptureResultScreen() {
         {translations.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.subtitle}>
-              Translations for &quot;{topLabel}&quot;
+              Translations for &quot;{displayLabel}&quot;
             </Text>
             {translations.map((t) => (
               <TranslationCard
@@ -221,6 +242,23 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 16,
     marginBottom: 8,
+  },
+  identifiedSection: {
+    marginTop: 16,
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  identifiedLabel: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  identifiedHint: {
+    color: '#007AFF',
+    fontSize: 12,
+    marginTop: 4,
   },
   section: {
     marginTop: 16,
